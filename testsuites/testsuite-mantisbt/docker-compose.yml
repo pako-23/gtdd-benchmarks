@@ -1,0 +1,7 @@
+version: '3.9'
+
+services:
+  app:
+    image: dockercontainervm/mantisbt:1.2.0
+    entrypoint:
+    - /home/run-services-docker.sh
