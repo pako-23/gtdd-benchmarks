@@ -4,6 +4,7 @@ set -u
 
 RUNNERS=4
 CURR_DIR="$PWD"
+EXPERIMENT_LOGS=""
 
 run_testsuite() {
   local testsuite="$1"
@@ -14,7 +15,7 @@ run_testsuite() {
     "$GTDD_EXEC" run -v app_url=http://app \
       -v driver_url=http://selenium:4444 -r "$runners" \
       -i "$graph" -d selenium=selenium/standalone-chrome:115.0 \
-      "testsuites/$testsuite"
+      "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     if [ "$?" -eq  0 ]; then
       return 0
     fi
@@ -41,13 +42,14 @@ run_experiment() {
     LOG_FILE="results/$testsuite/log-$TIME.json"
     GRAPH_FILE="results/$testsuite/graph-$TIME.json"
     SCHEDULES_FILE="results/$testsuite/schedules-$TIME.json"
+    EXPERIMENT_LOGS="results/$testsuite/execution-$TIME.log"
 
     "$GTDD_EXEC" deps --log debug --format json --log-file "$LOG_FILE" \
       -v app_url=http://app \
       -v driver_url=http://selenium:4444 \
       -o "$GRAPH_FILE" -r "$RUNNERS" -s ex-linear \
       -d selenium=selenium/standalone-chrome:115.0 \
-      "testsuites/$testsuite"
+      "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     if [ "$?" -ne  0 ]; then
       continue
     fi
