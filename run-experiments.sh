@@ -31,7 +31,7 @@ run_experiment() {
     return
   fi
 
-  if ! run_testsuite "$testsuite" '1'; then
+  if ! run_testsuite "$testsuite" '1' ''; then
     return
   fi
 
