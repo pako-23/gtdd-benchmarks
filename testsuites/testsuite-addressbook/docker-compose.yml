@@ -1,0 +1,7 @@
+version: '3.9'
+
+services:
+  app:
+    image: dockercontainervm/addressbook:8.0.0.0
+    entrypoint:
+    - /home/addressbook/run-services-docker.sh
