@@ -8,7 +8,7 @@ EXPERIMENT_LOGS="./results/logs.log"
 
 run_testsuite() {
   local testsuite="$1"
-  local runners="${2:-4}"
+  local runners="$2"
   local graph="$3"
 
   for i in $(seq 1 3); do
