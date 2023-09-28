@@ -4,7 +4,7 @@ set -u
 
 RUNNERS=4
 CURR_DIR="$PWD"
-EXPERIMENT_LOGS=""
+EXPERIMENT_LOGS="./results/logs.log"
 
 run_testsuite() {
   local testsuite="$1"
@@ -27,7 +27,7 @@ run_testsuite() {
 run_experiment() {
   local testsuite="$1"
 
-  if ! "$GTDD_EXEC" build "testsuites/$testsuite"; then
+  if ! "$GTDD_EXEC" build "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
     return
   fi
 
@@ -42,7 +42,6 @@ run_experiment() {
     LOG_FILE="results/$testsuite/log-$TIME.json"
     GRAPH_FILE="results/$testsuite/graph-$TIME.json"
     SCHEDULES_FILE="results/$testsuite/schedules-$TIME.json"
-    EXPERIMENT_LOGS="results/$testsuite/execution-$TIME.log"
 
     "$GTDD_EXEC" deps --log debug --format json --log-file "$LOG_FILE" \
       -v app_url=http://app \
