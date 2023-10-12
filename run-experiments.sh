@@ -46,16 +46,16 @@ run_experiment() {
     "$GTDD_EXEC" deps --log debug --format json --log-file "$LOG_FILE" \
       -v app_url=http://app \
       -v driver_url=http://selenium:4444 \
-      -o "$GRAPH_FILE" -r "$RUNNERS" -s ex-linear \
+      -o "$GRAPH_FILE" -r "$RUNNERS" -s pfast \
       -d selenium=selenium/standalone-chrome:115.0 \
       "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     if [ "$?" -ne  0 ]; then
       continue
     fi
 
-    # if ! run_testsuite "$testsuite" "$RUNNERS" "$GRAPH_FILE"; then
-    #   return
-    # fi
+    if ! run_testsuite "$testsuite" "$RUNNERS" "$GRAPH_FILE"; then
+      return
+    fi
 
     "$GTDD_EXEC" schedules -i "$GRAPH_FILE" \
       -o "$SCHEDULES_FILE" \
@@ -78,6 +78,6 @@ cd "$CURR_DIR"
 
 mkdir -p results
 
-for testsuite in $(ls testsuites); do
+for testsuite in $(ls testsuites | grep ppma); do
   run_experiment "$testsuite"
 done
