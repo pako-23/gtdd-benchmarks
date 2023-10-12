@@ -7,7 +7,7 @@ services:
     - /home/ppma/run-services-docker.sh
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/ppma/index.php"]
-      interval: 30s
+      interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
