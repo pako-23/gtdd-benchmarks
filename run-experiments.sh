@@ -53,10 +53,6 @@ run_experiment() {
       continue
     fi
 
-    if ! run_testsuite "$testsuite" "$RUNNERS" "$GRAPH_FILE"; then
-      return
-    fi
-
     "$GTDD_EXEC" schedules -i "$GRAPH_FILE" \
       -o "$SCHEDULES_FILE" \
       "testsuites/$testsuite"
@@ -78,6 +74,6 @@ cd "$CURR_DIR"
 
 mkdir -p results
 
-for testsuite in $(ls testsuites | grep ppma); do
+for testsuite in $(ls testsuites); do
   run_experiment "$testsuite"
 done

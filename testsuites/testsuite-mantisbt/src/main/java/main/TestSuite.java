@@ -33,11 +33,11 @@ import tests.*;
 		UpdateIssueSummaryTest.class,
 		UpdateProjectDescriptionTest.class,
 		UpdateProjectStatusTest.class,
-		UpdateProjectViewStatusTest.class,	
+		UpdateProjectViewStatusTest.class,
 		UpdateCategoryTest.class,
 		UpdateCategoryEmptyTest.class,
 		UpdateUserTest.class,
-		UpdateUserEmptyTest.class,		
+		UpdateUserEmptyTest.class,
 		DeleteCategoryTest.class,
 		DeleteIssueTest.class,
 		DeleteProjectTest.class,
@@ -50,7 +50,6 @@ import tests.*;
 		UnlinkMultipleSubprojectsTest.class,
 		LinkMultipleSubprojectsTest.class,
 		DeleteMultipleSubprojectsTest.class
-		
 })
 
 public class TestSuite {

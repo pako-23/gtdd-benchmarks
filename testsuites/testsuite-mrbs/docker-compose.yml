@@ -2,11 +2,11 @@ version: '3.9'
 
 services:
   app:
-    image: dockercontainervm/addressbook:8.0.0.0
+    image: dockercontainervm/mrbs:1.4.9
     entrypoint:
     - /home/addressbook/run-services-docker.sh
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/addressbook/index.php"]
+      test: ["CMD-SHELL", "curl -f http://localhost/mrbs/web"]
       interval: 10s
       timeout: 5s
       retries: 5
