@@ -14,16 +14,15 @@ def compute_log_stats(logs):
 
     for line in fp:
         data = json.loads(line)
-
         if data["msg"] == "starting dependency detection algorithm":
-            begin = datetime.fromisoformat(data["time"])
+            begin = datetime.strptime(data["time"], '%Y-%m-%dT%H:%M:%SZ')
         elif data["msg"].startswith("run tests "):
             suite_begin = data["msg"].find('[')
             suite_end = data["msg"].find(']')
             tests_runned += len(data["msg"][suite_begin:suite_end+1].split())
             test_suite_runs += 1
         elif data["msg"] == "finished dependency detection algorithm":
-            end = datetime.fromisoformat(data["time"])
+            end = datetime.strptime(data["time"], '%Y-%m-%dT%H:%M:%SZ')
 
     fp.close()
 
