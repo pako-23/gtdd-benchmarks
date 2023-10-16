@@ -2,7 +2,6 @@
 
 set -u
 
-RUNNERS=4
 CURR_DIR="$PWD"
 EXPERIMENT_LOGS="./results/logs.log"
 
@@ -26,6 +25,8 @@ run_testsuite() {
 
 run_experiment() {
   local testsuite="$1"
+  local runners="$2"
+  local strategy="$3"
 
   if ! "$GTDD_EXEC" build "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
     return
@@ -35,18 +36,20 @@ run_experiment() {
     return
   fi
 
-  mkdir -p "results/$testsuite"
+  if ! [ -d "results/$testsuite" ]; then
+    mkdir -p "results/$testsuite"
+  fi
 
   for i in $(seq 1 10); do
     TIME="$(date  +"%d-%m-%y-%H-%M-%S")"
-    LOG_FILE="results/$testsuite/log-$TIME.json"
-    GRAPH_FILE="results/$testsuite/graph-$TIME.json"
-    SCHEDULES_FILE="results/$testsuite/schedules-$TIME.json"
+    LOG_FILE="results/$testsuite/log-$strategy-$TIME.json"
+    GRAPH_FILE="results/$testsuite/graph-$strategy-$TIME.json"
+    SCHEDULES_FILE="results/$testsuite/schedules-$strategy-$TIME.json"
 
     "$GTDD_EXEC" deps --log debug --format json --log-file "$LOG_FILE" \
       -v app_url=http://app \
       -v driver_url=http://selenium:4444 \
-      -o "$GRAPH_FILE" -r "$RUNNERS" -s pfast \
+      -o "$GRAPH_FILE" -r "$runners" -s "$strategy" \
       -d selenium=selenium/standalone-chrome:115.0 \
       "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     if [ "$?" -ne  0 ]; then
@@ -57,7 +60,13 @@ run_experiment() {
       -o "$SCHEDULES_FILE" \
       "testsuites/$testsuite"
 
-    ./compute-stats.py "$LOG_FILE" "$SCHEDULES_FILE" "results/$testsuite/stats.csv"
+    if ! run_testsuite "$testsuite" "$(nproc --all)" "$GRAPH_FILE"; then
+      echo "Schedule $SCHEDULES_FILE does not work" >> "$EXPERIMENT_LOGS"
+    fi
+
+    ./compute-stats.py "$LOG_FILE" \
+      "$SCHEDULES_FILE" \
+      "results/$testsuite/stats-$strategy.csv"  >> "$EXPERIMENT_LOGS" 2>&1
   done
 }
 
@@ -67,13 +76,13 @@ run_experiment() {
 # TODO: refactor this part
 cd ../gtdd
 make
-
 GTDD_EXEC="../gtdd/gtdd"
 cd "$CURR_DIR"
 #######
 
-mkdir -p results
+if ! [ -d results ]; then
+  mkdir -p results
+fi
 
-for testsuite in $(ls testsuites); do
-  run_experiment "$testsuite"
-done
+run_experiment "$1" "$(nproc --all)" 'pfast'
+run_experiment "$1" '1' 'pradet'
