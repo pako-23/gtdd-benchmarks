@@ -2,9 +2,7 @@ package main;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runners.Suite.SuiteClasses;
@@ -42,18 +40,20 @@ public class Main {
         }
 
         final Class<?>[] tests = getTests(args);
-        final Result result = JUnitCore.runClasses(tests);
+        final boolean[] results = new boolean[tests.length];
 
-        for (final Failure f : result.getFailures()) System.out.println(f);
+        for (int i = 0; i < tests.length; ++i) {
+            final Result result = JUnitCore.runClasses(tests[i]);
+            if (!result.wasSuccessful()) {
+                result.getFailures().stream().forEach(System.out::println);
+                break;
+            }
+            results[i] = true;
+        }
 
-        final Set<String> failures = result.getFailures().stream()
-            .map(r -> r.getDescription().getClassName())
-            .collect(Collectors.toSet());
-
-        for (final Class<?> test : tests) {
-            final String testName = test.getName();
-            final int failed = failures.contains(testName) ? 0 : 1;
-            System.out.println(String.format("%s %d", testName, failed));
+        for (int i = 0; i < tests.length; ++i) {
+            final String testName = tests[i].getName();
+            System.out.println(String.format("%s %d", testName, results[i] ? 1 : 0));
         }
 
         System.exit(0);
