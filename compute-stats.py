@@ -17,9 +17,17 @@ def compute_log_stats(logs):
         if data["msg"] == "starting dependency detection algorithm":
             begin = datetime.strptime(data["time"], '%Y-%m-%dT%H:%M:%SZ')
         elif data["msg"].startswith("run tests "):
-            suite_begin = data["msg"].find('[')
-            suite_end = data["msg"].find(']')
-            tests_runned += len(data["msg"][suite_begin:suite_end+1].split())
+            test_results = data["msg"][data["msg"].find(']')+1:]
+            suite_begin = test_results.find('[')
+            suite_end = test_results.find(']')
+
+            test_results = test_results[suite_begin+1:suite_end].split()
+
+            try:
+                tests_runned += test_results.index('false') + 1
+            except:
+                tests_runned += len(test_results)
+
             test_suite_runs += 1
         elif data["msg"] == "finished dependency detection algorithm":
             end = datetime.strptime(data["time"], '%Y-%m-%dT%H:%M:%SZ')
