@@ -25,8 +25,8 @@ run_testsuite() {
 
 run_experiment() {
   local testsuite="$1"
-  local runners="$2"
-  local strategy="$3"
+  local strategy="$2"
+  local runners="$(nproc --all)"
 
   if ! "$GTDD_EXEC" build "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
     return
@@ -84,5 +84,5 @@ if ! [ -d results ]; then
   mkdir -p results
 fi
 
-run_experiment "$1" "$(nproc --all)" 'pfast'
-run_experiment "$1" '1' 'pradet'
+run_experiment "$1" 'pfast'
+run_experiment "$1" 'pradet'
