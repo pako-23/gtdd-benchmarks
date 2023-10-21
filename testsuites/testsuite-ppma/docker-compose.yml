@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  app:
+    image: dockercontainervm/ppma:0.6.0
+    entrypoint:
+    - /home/ppma/run-services-docker.sh
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ppma/index.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
