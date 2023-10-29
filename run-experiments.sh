@@ -84,4 +84,9 @@ if ! [ -d results ]; then
   mkdir -p results
 fi
 
-run_experiment "$1" "$2"
+for testsuite in $(ls ./testsuites); do
+  if [ -d "./results/$testsuite" ]; then
+    continue
+  fi
+  run_experiment "$testsuite" "$1"
+done
