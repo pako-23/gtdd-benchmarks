@@ -84,5 +84,4 @@ if ! [ -d results ]; then
   mkdir -p results
 fi
 
-run_experiment "$1" 'pfast'
-run_experiment "$1" 'pradet'
+run_experiment "$1" "$2"
