@@ -26,7 +26,7 @@ run_testsuite() {
 run_experiment() {
   local testsuite="$1"
   local strategy="$2"
-  local runners="$(nproc --all)"
+  local runners="$(eval "$(nproc --all)" - 1)"
 
   if ! "$GTDD_EXEC" build "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
     return
