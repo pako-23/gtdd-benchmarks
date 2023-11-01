@@ -85,7 +85,7 @@ if ! [ -d results ]; then
 fi
 
 for testsuite in $(ls ./testsuites); do
-  if [ -d "./results/$testsuite" ]; then
+  if [ -f "./results/$testsuite/stats-$1.csv" ]; then
     continue
   fi
   run_experiment "$testsuite" "$1"
