@@ -1,0 +1,6 @@
+version: '3.9'
+
+services:
+  selenium:
+    image: selenium/standalone-chrome:115.0.5790.110
+    shm_size: 2gb

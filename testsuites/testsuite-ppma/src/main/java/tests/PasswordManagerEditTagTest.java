@@ -35,7 +35,6 @@ public class PasswordManagerEditTagTest {
 		driver.findElement(By.id("Tag_name")).clear();
 		driver.findElement(By.id("Tag_name")).sendKeys("Msn");
 		driver.findElement(By.name("yt0")).click();
-//		Thread.sleep(1000);
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[4]/table/tbody/tr/td[1]"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[4]/table/tbody/tr/td[1]")).getText().contains("Msn"));
 	}

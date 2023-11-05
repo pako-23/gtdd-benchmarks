@@ -30,13 +30,11 @@ public class PasswordManagerAddTagTest {
 		driver.findElement(By.id("LoginForm_password")).clear();
 		driver.findElement(By.id("LoginForm_password")).sendKeys("admin");
 		driver.findElement(By.xpath("//*[@id='login-form']/div/div[2]/a")).click();
-//		driver.findElement(By.linkText("Tags")).click();
 		basePageObject.mouseOver(By.linkText("Tags"));
 		driver.findElement(By.linkText("Create")).click();
 		driver.findElement(By.id("Tag_name")).clear();
 		driver.findElement(By.id("Tag_name")).sendKeys("Facebook");
 		driver.findElement(By.name("yt0")).click();
-//		Thread.sleep(1000);
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[4]/table/tbody/tr/td[1]"));
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[4]/table/tbody/tr/td[2]"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[4]/table/tbody/tr/td[1]")).getText().contains("Facebook"));

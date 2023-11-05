@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  app:
+    image: dockercontainervm/claroline:1.11.10
+    entrypoint:
+    - /home/claroline/run-services-docker.sh
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/claroline11110/claroline/index.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

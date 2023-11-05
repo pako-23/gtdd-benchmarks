@@ -33,11 +33,8 @@ public class PasswordManagerSearchEntryByUrlTest {
 		driver.findElement(By.linkText("Advanced Search")).click();
 		basePageObject.waitForElementBeingClickable(By.id("Entry_url"));
 		basePageObject.sendKeys(By.id("Entry_url"), "www.google.it/mail");
-//		driver.findElement(By.id("Entry_url")).clear();
-//		driver.findElement(By.id("Entry_url")).sendKeys("www.google.it/mail");
 		basePageObject.waitForElementBeingVisibleOnPage(By.name("yt0"));
 		basePageObject.click(By.name("yt0"));
-//		driver.findElement(By.name("yt0")).click();
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr/td[1]")).getText().contains("Google"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr/td[2]")).getText().contains("myaccount@google.it"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr/td[3]")).getText().contains("Email, Google"));

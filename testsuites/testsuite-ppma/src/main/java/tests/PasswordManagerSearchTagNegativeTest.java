@@ -34,10 +34,7 @@ public class PasswordManagerSearchTagNegativeTest {
 		driver.findElement(By.linkText("Advanced Search")).click();
 		basePageObject.waitForElementBeingPresentOnPage(By.id("Tag_name"));
 		basePageObject.sendKeys(By.id("Tag_name"), "NotATag");
-//		driver.findElement(By.id("Tag_name")).clear();
-//		driver.findElement(By.id("Tag_name")).sendKeys("NotATag");
 		basePageObject.click(By.name("yt0"));
-//		driver.findElement(By.name("yt0")).click();
 		assertTrue(driver.findElement(By.className("empty")).getText().contains("No results found."));
 		driver.findElement(By.linkText("Profile")).click();
 		driver.findElement(By.linkText("Logout")).click();

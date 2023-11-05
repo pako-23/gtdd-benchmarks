@@ -35,7 +35,6 @@ public class PasswordManagerAddEntryTest {
 		driver.findElement(By.id("LoginForm_password")).sendKeys("admin");
 		driver.findElement(By.xpath("//*[@id='login-form']/div/div[2]/a")).click();
 		basePageObject.mouseOver(By.linkText("Entries"));
-//		driver.findElement(By.linkText("Entries")).click();
 		driver.findElement(By.linkText("Create")).click();
 		driver.findElement(By.id("Entry_name")).clear();
 		driver.findElement(By.id("Entry_name")).sendKeys("Google");

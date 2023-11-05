@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  app:
+    image: dockercontainervm/mantisbt:1.2.0
+    entrypoint:
+    - /home/run-services-docker.sh
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/mantisbt/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

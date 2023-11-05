@@ -49,7 +49,6 @@ public class AddressBookCheckMultipleBirthdaysInfoTest {
 				driver.findElement(By.xpath(".//*[@id='birthdays']/tbody/tr[4]/td[5]")).getText());
 		assertEquals("01056323", driver.findElement(By.xpath(".//*[@id='birthdays']/tbody/tr[4]/td[6]")).getText());
 		assertTrue(driver.findElement(By.xpath(".//*[@id='birthdays']/tbody/tr[1]/th")).getText().contains("June"));
-//		assertEquals("June 2019", driver.findElement(By.xpath(".//*[@id='birthdays']/tbody/tr[1]/th")).getText());
 	}
 
 	@After

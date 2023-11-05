@@ -32,17 +32,12 @@ public class PasswordManagerRemoveMultipleEntriesTest {
 		driver.findElement(By.xpath("//*[@id='login-form']/div/div[2]/a")).click();
 		driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[4]/a[5]")).click();
 		driver.switchTo().alert().accept();
-//		Thread.sleep(1000);
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[2]/td[4]/a[5]"));
 		basePageObject.click(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[2]/td[4]/a[5]"));
-//		driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[2]/td[4]/a[5]")).click();
 		driver.switchTo().alert().accept();
-//		Thread.sleep(1000);
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[4]/a[5]"));
 		basePageObject.click(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[4]/a[5]"));
-//		driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[4]/a[5]")).click();
 		driver.switchTo().alert().accept();
-//		Thread.sleep(1000);
 		basePageObject.waitForElementBeingPresentOnPage(By.className("empty"));
 		assertTrue(driver.findElement(By.className("empty")).getText().contains("No results found."));
 		driver.findElement(By.linkText("Profile")).click();

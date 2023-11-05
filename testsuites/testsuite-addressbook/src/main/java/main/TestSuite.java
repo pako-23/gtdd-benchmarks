@@ -33,7 +33,6 @@ import tests.AddressBookRemoveFromMultipleGroupsTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-
 	AddressBookAddAddressBookTest.class,
 	AddressBookSearchAddressBookNameTest.class,
 	AddressBookSearchAddressBookEmailTest.class,
@@ -48,7 +47,7 @@ import tests.AddressBookRemoveFromMultipleGroupsTest;
 	AddressBookRemoveFromGroupTest.class,
 	AddressBookRemoveGroupTest.class,
 	AddressBookRemoveAddressBookTest.class,
-	
+
 	AddressBookAddMultipleAddressBookTest.class,
 	AddressBookSearchMultipleAddressBookNameTest.class,
 	AddressBookAddMultipleGroupsTest.class,
@@ -62,9 +61,6 @@ import tests.AddressBookRemoveFromMultipleGroupsTest;
 	AddressBookRemoveFromMultipleGroupsTest.class,
 	AddressBookRemoveMultipleGroupsTest.class,
 	AddressBookRemoveMultipleAddressBookTest.class,
-
-//    AddressBookSearchAddressBookTelephoneNegativeTest.class
-
 })
 
 public class TestSuite {}

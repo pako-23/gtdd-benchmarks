@@ -26,7 +26,7 @@ run_testsuite() {
 run_experiment() {
   local testsuite="$1"
   local strategy="$2"
-  local runners="$(nproc --all)"
+  local runners="12"
 
   if ! "$GTDD_EXEC" build "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
     return
@@ -50,7 +50,7 @@ run_experiment() {
       -v app_url=http://app \
       -v driver_url=http://selenium:4444 \
       -o "$GRAPH_FILE" -r "$runners" -s "$strategy" \
-      -d selenium=selenium/standalone-chrome:115.0 \
+      -d ./driver.yml \
       "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     if [ "$?" -ne  0 ]; then
       continue

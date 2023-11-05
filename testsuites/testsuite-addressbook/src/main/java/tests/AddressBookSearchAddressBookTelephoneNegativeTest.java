@@ -25,9 +25,6 @@ public class AddressBookSearchAddressBookTelephoneNegativeTest {
 
 	@Test
 	public void testAddressBookSearchAddressBookTelephoneNegative() throws Exception {
-//		driver.findElement(By.name("user")).sendKeys("admin");
-//		driver.findElement(By.name("pass")).sendKeys("secret");
-//		driver.findElement(By.xpath(".//*[@id='content']/form/input[3]")).click();
 		driver.findElement(By.name("searchstring")).clear();
 		driver.findElement(By.name("searchstring")).sendKeys("01056321");
 		assertEquals("Number of results: 1",

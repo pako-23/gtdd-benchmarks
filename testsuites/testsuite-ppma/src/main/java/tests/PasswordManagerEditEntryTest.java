@@ -33,15 +33,12 @@ public class PasswordManagerEditEntryTest {
 		driver.findElement(By.className("update-entry")).click();
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("(//input[@id='Entry_username'])[2]"));
 		basePageObject.waitForElementBeingVisibleOnPage(By.xpath("(//input[@id='Entry_username'])[2]"));
-//		basePageObject.sendKeys(By.xpath("(//input[@id='Entry_username'])[2]"), "myaccount1@google.it");
 		driver.findElement(By.xpath("(//input[@id='Entry_username'])[2]")).clear();
 		driver.findElement(By.xpath("(//input[@id='Entry_username'])[2]")).sendKeys("myaccount1@google.it");
-//		basePageObject.sendKeys(By.xpath("(//input[@id='Entry_url'])[2]"), "www.google.it/mail1");
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("(//input[@id='Entry_url'])[2]"));
 		basePageObject.waitForElementBeingVisibleOnPage(By.xpath("(//input[@id='Entry_url'])[2]"));
 		driver.findElement(By.xpath("(//input[@id='Entry_url'])[2]")).clear();
 		driver.findElement(By.xpath("(//input[@id='Entry_url'])[2]")).sendKeys("www.google.it/mail1");
-//		basePageObject.click(By.name("yt1"));
 		basePageObject.waitForElementBeingPresentOnPage(By.name("yt1"));
 		basePageObject.waitForElementBeingClickable(By.name("yt1"));
 		driver.findElement(By.name("yt1")).click();

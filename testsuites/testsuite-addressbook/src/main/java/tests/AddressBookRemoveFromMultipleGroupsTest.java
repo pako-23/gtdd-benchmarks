@@ -13,7 +13,6 @@ import org.openqa.selenium.support.ui.Select;
 import utils.DriverProvider;
 import utils.Properties;
 
-// it was AddressBookUnassignFromMultipleGroupsTest
 public class AddressBookRemoveFromMultipleGroupsTest {
 
 	private WebDriver driver;
