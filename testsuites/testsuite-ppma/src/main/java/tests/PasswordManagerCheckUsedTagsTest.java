@@ -61,47 +61,6 @@ public class PasswordManagerCheckUsedTagsTest {
 			if (exit) break;
 		}
 
-
-
-		// driver.findElement(By.linkText("Entries")).click();
-		// driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[4]/a[4]")).click();
-		// basePageObject.waitForElementBeingPresentOnPage(By.xpath("(//input[@id='Entry_tagList'])[2]"));
-		// basePageObject.waitForElementBeingVisibleOnPage(By.xpath("(//input[@id='Entry_tagList'])[2]"));
-		// driver.findElement(By.xpath("(//input[@id='Entry_tagList'])[2]")).clear();
-		// driver.findElement(By.xpath("(//input[@id='Entry_tagList'])[2]")).sendKeys("");
-		// basePageObject.waitForElementBeingPresentOnPage(By.name("yt1"));
-		// basePageObject.waitForElementBeingClickable(By.name("yt1"));
-		// driver.findElement(By.name("yt1")).click();
-		// driver.navigate().refresh();
-
-
-
-		// driver.findElement(By.linkText("Entries")).click();
-		// driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[2]/td[4]/a[4]")).click();
-		// basePageObject.waitForElementBeingPresentOnPage(By.xpath("(//input[@id='Entry_tagList'])[2]"));
-		// basePageObject.waitForElementBeingVisibleOnPage(By.xpath("(//input[@id='Entry_tagList'])[2]"));
-		// driver.findElement(By.xpath("(//input[@id='Entry_tagList'])[2]")).clear();
-		// driver.findElement(By.xpath("(//input[@id='Entry_tagList'])[2]")).sendKeys("");
-		// basePageObject.waitForElementBeingPresentOnPage(By.name("yt1"));
-		// basePageObject.waitForElementBeingClickable(By.name("yt1"));
-		// driver.findElement(By.name("yt1")).click();
-		// driver.navigate().refresh();
-
-
-		// driver.findElement(By.linkText("Entries")).click();
-		// driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[3]/td[4]/a[4]")).click();
-		// basePageObject.waitForElementBeingPresentOnPage(By.xpath("(//input[@id='Entry_tagList'])[2]"));
-		// basePageObject.waitForElementBeingVisibleOnPage(By.xpath("(//input[@id='Entry_tagList'])[2]"));
-		// driver.findElement(By.xpath("(//input[@id='Entry_tagList'])[2]")).clear();
-		// driver.findElement(By.xpath("(//input[@id='Entry_tagList'])[2]")).sendKeys("");
-		// basePageObject.waitForElementBeingPresentOnPage(By.name("yt1"));
-		// basePageObject.waitForElementBeingClickable(By.name("yt1"));
-		// driver.findElement(By.name("yt1")).click();
-		// driver.navigate().refresh();
-
-
-		System.out.println(driver.findElement(By.cssSelector("body")).getText());
-
 		driver.findElement(By.linkText("Tags")).click();
 		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[2]"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[2]")).getText().contains("0"));
