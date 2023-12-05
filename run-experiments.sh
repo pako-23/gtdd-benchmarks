@@ -59,7 +59,7 @@ single_iteration() {
 run_experiment() {
   local testsuite="$1"
 
-  if ! "$GTDD_EXEC" build "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
+  if ! "$GTDD_EXEC" build -t java-selenium "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
     return
   fi
 
