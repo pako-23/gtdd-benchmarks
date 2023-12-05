@@ -43,7 +43,7 @@ single_iteration() {
     return
   fi
 
-  "$GTDD_EXEC" schedules -i "$GRAPH_FILE" \
+  "$GTDD_EXEC" schedules -t java-selenium  -i "$GRAPH_FILE" \
     -o "$SCHEDULES_FILE" \
     "testsuites/$testsuite"
 
