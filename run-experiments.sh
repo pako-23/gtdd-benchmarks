@@ -13,7 +13,7 @@ run_testsuite() {
   for i in $(seq 1 3); do
     "$GTDD_EXEC" run -v app_url=http://app \
       -v driver_url=http://selenium:4444 -r "$runners" \
-      -i "$graph" -d ./selenium-driver.yaml \
+      -i "$graph" -t java-selenium -d ./selenium-driver.yaml \
       "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     if [ "$?" -eq  0 ]; then
       return 0
@@ -36,7 +36,7 @@ single_iteration() {
   "$GTDD_EXEC" deps --log debug --format json --log-file "$LOG_FILE" \
     -v app_url=http://app \
     -v driver_url=http://selenium:4444 \
-    -o "$GRAPH_FILE" -r "$runners" -s "$strategy" \
+    -o "$GRAPH_FILE" -t java-selenium -r "$runners" -s "$strategy" \
     -d ./selenium-driver.yaml \
     "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
   if [ "$?" -ne  0 ]; then
