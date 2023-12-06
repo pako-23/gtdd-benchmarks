@@ -80,6 +80,10 @@ test_schedules() {
     mkdir -p "./results/timing/$testsuite"
   fi
 
+  if ! "$GTDD_EXEC" build -t java-selenium "testsuites/$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
+    return
+  fi
+
   for i in $(seq 1 10); do
     run_testsuite "$testsuite" '' "./results/timing/$testsuite/sequential-$i.json"
   done
