@@ -94,6 +94,8 @@ test_schedules() {
 
     run_testsuite "$testsuite" "$graph" "./results/timing/$testsuite/$(basename "$graph")"
   done
+
+  ./compute-times.py "./results/timing/$testsuite" "./results/timing/$testsuite/stats.csv"
 }
 
 
