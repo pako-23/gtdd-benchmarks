@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  app:
+    image: olianasd/expresscart-mongodb@sha256:e8e2f3ba35b1a5ec18b6ce6b9e7ff8e213069fed9af3c9a9cd6c840a51aa895b
+    healthcheck:
+      test: ["CMD-SHELL", "wget http://localhost:1111/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
