@@ -5,6 +5,21 @@ set -u
 CURR_DIR="$PWD"
 EXPERIMENT_LOGS="./results/logs.log"
 
+
+get_appurl() {
+  local testsuite="$1"
+
+  local port="$(grep 'test:' "./testsuites/$testsuite/docker-compose.yml" \
+    | grep -oE 'http://localhost(:[0-9]+)?' \
+    | grep -oE '[0-9]+')"
+
+  if [ -z "$port" ]; then
+    echo 'http://app'
+  else
+    echo "http://app:$port"
+  fi
+}
+
 run_testsuite() {
   local testsuite="$1"
   local graph="$2"
@@ -13,7 +28,7 @@ run_testsuite() {
 
   for i in $(seq 1 3); do
     "$GTDD_EXEC" run --format json --log-file "$out_file" \
-      -v app_url=http://app \
+      -v "app_url=$(get_appurl "$testsuite")" \
       -v driver_url=http://selenium:4444 -r "$runners" \
       -i "$graph" -t java-selenium -d ./selenium-driver.yaml \
       "testsuites/$testsuite"
@@ -37,7 +52,7 @@ single_iteration() {
   local SCHEDULES_FILE="results/$testsuite/schedules-$strategy-$TIME.json"
 
   "$GTDD_EXEC" deps --log debug --format json --log-file "$LOG_FILE" \
-    -v app_url=http://app \
+    -v "app_url=$(get_appurl "$testsuite")" \
     -v driver_url=http://selenium:4444 \
     -o "$GRAPH_FILE" -t java-selenium -r "$runners" -s "$strategy" \
     -d ./selenium-driver.yaml \
