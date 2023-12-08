@@ -100,12 +100,18 @@ test_schedules() {
   fi
 
   for i in $(seq 1 10); do
+    if [ -f "./results/timing/$testsuite/sequential-$i.json" ]; then
+      continue
+    fi
+
     run_testsuite "$testsuite" '' "./results/timing/$testsuite/sequential-$i.json"
   done
 
   for schedule in "./results/$testsuite/schedules-"*; do
-
     graph="$(echo "$schedule" | sed s/schedules-/graph-/)"
+    if [ -f "./results/timing/$testsuite/$(basename "$graph")" ]; then
+      continue
+    fi
 
     run_testsuite "$testsuite" "$graph" "./results/timing/$testsuite/$(basename "$graph")"
   done
@@ -137,9 +143,5 @@ if ! [ -d results/timing ]; then
 fi
 
 for testsuite in $(ls ./testsuites); do
-  if [ -f "./results/timing/$testsuite/stats.csv" ]; then
-    continue
-  fi
-
   test_schedules "$testsuite"
 done
