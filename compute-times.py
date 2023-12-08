@@ -73,7 +73,7 @@ def main(base, outfile):
         out = csv.writer(fp)
         out.writerow(keys)
 
-        for i in range(len(data["pfast"])):
+        for i in range(len(data["sequential_max_execution"])):
             out.writerow([data[key][i] for key in keys])
 
 if __name__ == "__main__":
