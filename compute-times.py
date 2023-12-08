@@ -22,11 +22,21 @@ def time_to_seconds(s):
     return seconds + float(rest[:-1])
 
 def get_running_time(file):
+    tot_work = 0
+    max_execution = 0
+    cpu_number = 0
+
     with open(file, "r") as fp:
         for line in fp:
             data = json.loads(line)
             if data["msg"].startswith("expected running time "):
-                return time_to_seconds(data["msg"].split()[-1])
+                max_execution = time_to_seconds(data["msg"].split()[-1])
+            elif data["msg"].startswith("run schedule in"):
+                cpu_number += 1
+                tot_work += time_to_seconds(data["msg"].split()[-1])
+
+    return max_execution, tot_work, cpu_number
+
 
 def get_algo(file):
     if "sequential" in file:
@@ -35,30 +45,36 @@ def get_algo(file):
         return "pfast"
     else:
         return "pradet"
+
+
 def main(base, outfile):
-    data = {
-        "sequential": [],
-        "pfast": [],
-        "pradet": []
-    }
+    keys = [
+        "sequential_max_execution",
+        "pradet_max_execution",
+        "pfast_max_execution",
+        "sequential_tot_work",
+        "pradet_tot_work",
+        "pfast_tot_work",
+        "sequential_cpu_number",
+        "pfast_cpu_number",
+        "pradet_cpu_number",
+    ]
+    data = dict(((key, []) for key in keys))
 
     for file in glob.glob(os.path.join(base, "*.json")):
-        data[get_algo(file)].append(get_running_time(file))
+        algo = get_algo(file)
+        max_execution, tot_work, cpu_number = get_running_time(file)
+        data[f"{algo}_max_execution"].append(max_execution)
+        data[f"{algo}_tot_work"].append(tot_work)
+        data[f"{algo}_cpu_number"].append(cpu_number)
+
 
     with open(outfile, "w") as fp:
         out = csv.writer(fp)
-        out.writerow([
-            "sequential",
-            "pfast",
-            "pradet",
-        ])
+        out.writerow(keys)
 
         for i in range(len(data["pfast"])):
-            out.writerow([
-                data["sequential"][i],
-                data["pfast"][i],
-                data["pradet"][i],
-            ])
+            out.writerow([data[key][i] for key in keys])
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
