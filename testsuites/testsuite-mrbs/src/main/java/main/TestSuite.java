@@ -8,18 +8,14 @@ import tests.*;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-
 	AddBuildingTest.class,
 	AddRoomTest.class,
 	CheckBuildingRoomTest.class,
 	AddEntryTest.class,
 	CheckEntryTest.class,
-//	SearchEntryTest.class,
-
 	AddLongNameBuildingNegativeTest.class,
 	AddLongNameRoomNegativeTest.class,
 	SearchEntryNegativeTest.class,
-//	AddConflictualEntryNegativeTest.class,
 	RemoveEntryTest.class,
 	AddMultipleEntriesSameRoomSameDayTest.class,
 	AddMultipleEntriesSameRoomDifferentDaysTest.class,

@@ -70,8 +70,9 @@ public class AddAndRemoveSerialEntryTest {
 		driver.findElement(By.linkText("Rooms")).click();
 		new Select(driver.findElement(By.xpath(".//*[@id='area_select']"))).selectByIndex(2);
 		driver.findElement(
-				By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img"))
-				.click();
+			By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img"))
+			.click();
+		Thread.sleep(1000);
 		driver.findElement(By.id("del_yes")).click();
 		driver.findElement(By.cssSelector("#logon_box > form > div > input[type=\"submit\"]")).click();
 	}

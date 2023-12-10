@@ -43,6 +43,7 @@ public class AddLongNameRoomNegativeTest {
 		driver.findElement(By.name("capacity")).clear();
 		driver.findElement(By.name("capacity")).sendKeys("");
 		driver.findElement(By.xpath("//input[@value='Add Room']")).click();
+		Thread.sleep(1000);
 		assertFalse(driver
 				.findElement(By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[2]/div[2]/table/tbody/tr[1]/td/div"))
 				.getText().matches("^[\\s\\S]*LongMoreThanTwentyFiveCharactersRoomName[\\s\\S]*$"));
@@ -52,6 +53,7 @@ public class AddLongNameRoomNegativeTest {
 		driver.findElement(
 				By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img"))
 				.click();
+		Thread.sleep(1000);
 		driver.findElement(By.id("del_yes")).click();
 		driver.findElement(By.cssSelector("#logon_box > form > div > input[type=\"submit\"]")).click();
 	}

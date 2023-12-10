@@ -56,6 +56,7 @@ public class AddMultipleRoomsTest {
 		driver.findElement(By.name("capacity")).clear();
 		driver.findElement(By.name("capacity")).sendKeys("31");
 		driver.findElement(By.xpath("//input[@value='Add Room']")).click();
+		Thread.sleep(1000);
 		assertTrue(driver
 				.findElement(By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[2]/div[2]/table/tbody/tr[1]/td/div"))
 				.getText().matches("^[\\s\\S]*MyRoom1[\\s\\S]*$"));
