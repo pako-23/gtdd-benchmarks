@@ -5,8 +5,6 @@ services:
     image: dockercontainervm/mrbs:1.4.9
     entrypoint:
     - /home/mrbs/run-services-docker.sh
-    ports:
-      - 3000:80
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/mrbs/web"]
       interval: 10s
