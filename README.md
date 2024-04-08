@@ -17,7 +17,6 @@ cd gtdd-benchmarks
 To run the benchmark only against some of the test suites, run the
 following command.
 
-
 ```bash
 ./run-experiments.sh ./testsuites/testsuite1 ./testsuites/testsuite2 ...
 ```
