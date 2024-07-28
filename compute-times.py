@@ -9,17 +9,19 @@ import glob
 
 def splitting(s, key):
     if len(s.split(key)) == 1:
-        return '0', s
+        return "0", s
     else:
         return s.split(key)
+
 
 def time_to_seconds(s):
     seconds = 0
     hours, rest = splitting(s, "h")
-    seconds += 3600*int(hours)
+    seconds += 3600 * int(hours)
     minutes, rest = splitting(s, "m")
-    seconds += 60*int(minutes)
+    seconds += 60 * int(minutes)
     return seconds + float(rest[:-1])
+
 
 def get_running_time(file):
     tot_work = 0
@@ -43,8 +45,10 @@ def get_algo(file):
         return "sequential"
     elif "pfast" in file:
         return "pfast"
-    else:
+    elif "pradet" in file:
         return "pradet"
+    else:
+        return "mem_fast"
 
 
 def main(base, outfile):
@@ -52,12 +56,15 @@ def main(base, outfile):
         "sequential_max_execution",
         "pradet_max_execution",
         "pfast_max_execution",
+        "mem_fast_execution",
         "sequential_tot_work",
         "pradet_tot_work",
         "pfast_tot_work",
+        "mem_fast_tot_work",
         "sequential_cpu_number",
         "pfast_cpu_number",
         "pradet_cpu_number",
+        "mem_fast_cpu_number",
     ]
     data = dict(((key, []) for key in keys))
 
@@ -68,13 +75,13 @@ def main(base, outfile):
         data[f"{algo}_tot_work"].append(tot_work)
         data[f"{algo}_cpu_number"].append(cpu_number)
 
-
     with open(outfile, "w") as fp:
         out = csv.writer(fp)
         out.writerow(keys)
 
         for i in range(len(data["sequential_max_execution"])):
             out.writerow([data[key][i] for key in keys])
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

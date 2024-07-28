@@ -3,7 +3,7 @@ type: java-selenium
 env:
   - driver_url=http://selenium:4444
   - app_url=http://app
-runners: 4
+runners: 12
 log-format: json
 log: debug
 driver: ./selenium-driver.yaml

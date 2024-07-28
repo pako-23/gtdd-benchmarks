@@ -3,3 +3,5 @@ results/
 *.pdf
 *.dat
 gtdd/
+pradet-replication/
+junit-testsuites/
