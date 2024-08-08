@@ -1,5 +1,4 @@
 ---
-type: java-selenium
 env:
   - driver_url=http://selenium:4444
   - app_url=http://app

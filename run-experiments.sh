@@ -2,7 +2,7 @@
 
 
 EXPERIMENT_LOGS="./results/logs.log"
-MYSQL_TESTSUITES="collations"
+MYSQL_TESTSUITES="collations json"
 
 
 setup_junit_testsuites() {
@@ -116,24 +116,33 @@ setup() {
 }
 
 
+get_runners() {
+    local testsuite="$(basename "$1")"
+
+    if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
+	expr "$(nproc --all)" / 2
+	return
+    fi
+
+    nproc --all
+}
+
+
 run_testsuite() {
     local testsuite="$1"
-    local testsuite_type="$2"
-    local graph="$3"
-    local out_file="$4"
+    local graph="$2"
+    local out_file="$3"
 
     for i in $(seq 1 3); do
 	if [ -f "$testsuite/gtdd.yaml" ]; then
 	    "$GTDD_EXEC" run --config "$testsuite/gtdd.yaml" \
-			 --type "$testsuite_type" \
 			 --log-file "$out_file" \
-			 -s "$graph" "$testsuite"
+			 -g "$graph" "$testsuite"
 	else
-	    "$GTDD_EXEC" run --type "$testsuite_type" \
-			 -r "$(nproc --all)" \
+	    "$GTDD_EXEC" run -r "$(get_runners "$testsuite")" \
 			 --log-format json \
 			 --log-file "$out_file" \
-			 -s "$graph" "$testsuite"
+			 -g "$graph" "$testsuite"
 	fi
 
 	if [ "$?" -eq  0 ]; then
@@ -147,7 +156,6 @@ run_testsuite() {
 
 validate_results() {
     local testsuite="$1"
-    local testsuite_type="$2"
     local testsuite_name="$(basename $1)"
     
     if ! [ -d "./results/timing/$testsuite_name" ]; then
@@ -159,8 +167,7 @@ validate_results() {
 	    continue
 	fi
 
-	run_testsuite "$testsuite" \
-		      "$testsuite_type" '' \
+	run_testsuite "$testsuite" '' \
 		      "./results/timing/$testsuite_name/sequential-$i.json"
     done
 
@@ -170,7 +177,6 @@ validate_results() {
 	fi
 
 	run_testsuite "$testsuite" \
-		      "$testsuite_type" \
 		      "$graph" \
 		      "./results/timing/$testsuite_name/$(basename "$graph")"
     done
@@ -181,8 +187,7 @@ validate_results() {
 
 find_dependencies_gtdd() {
     local testsuite="$1"
-    local testsuite_type="$2"
-    local strategy="$3"
+    local strategy="$2"
 
     local TIME="$(date  +"%d-%m-%y-%H-%M-%S")"
     local LOG_FILE="results/$(basename $testsuite)/log-$strategy-$TIME.json"
@@ -191,12 +196,12 @@ find_dependencies_gtdd() {
 
     local start_time="$(date -u +%s)"
     if [ -f "$testsuite/gtdd.yaml" ]; then
-	"$GTDD_EXEC" deps -t "$testsuite_type" --log-file "$LOG_FILE" \
+	"$GTDD_EXEC" deps --log-file "$LOG_FILE" \
 		     --config  "$testsuite/gtdd.yaml" \
 		     -s "$strategy" -o "$GRAPH_FILE" \
 		     "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
     else
-	"$GTDD_EXEC" deps -t "$testsuite_type" -r "$(nproc --all)" \
+	"$GTDD_EXEC" deps -r "$(get_runners "$testsuite")" \
 		     --log-format json \
 		     --log debug \
 		     --log-file "$LOG_FILE" \
@@ -208,7 +213,7 @@ find_dependencies_gtdd() {
 	return
     fi
 
-    "$GTDD_EXEC" schedules -t "$testsuite_type"  \
+    "$GTDD_EXEC" schedules  \
 		 -i "$GRAPH_FILE" \
 		 -o "$SCHEDULES_FILE" \
 		 "$testsuite"
@@ -303,13 +308,12 @@ EOF
 
 find_dependencies() {
     local testsuite="$1"
-    local testsuite_type="$2"
-    local strategy="$3"
+    local strategy="$2"
 
-    if [ "$strategy" = 'pradet' ] && [ "$testsuite_type" = 'junit' ]; then
+    if [ "$strategy" = 'pradet' ] && [ -d "./junit-testsuites/$(basename "$testsuite")" ]; then
 	find_dependencies_pradet "$testsuite"
     else
-	find_dependencies_gtdd "$testsuite" "$testsuite_type" "$strategy"
+	find_dependencies_gtdd "$testsuite" "$strategy"
     fi
 }
 
@@ -317,49 +321,47 @@ find_dependencies() {
 setup_mysql_testsuite() {
     local testsuite="$1"
 
-    cat > mysql-server/list_tests.sh <<EOF
+    cat > mysql-server/entrypoint.sh <<EOF
 #!/bin/sh
 
-./mysql-test-run.pl --print-testcases --suite=$testsuite | grep -E "^\[.*\]$" | tr -d "[" | tr -d "]"
-EOF
-
-    cat > mysql-server/run_tests.sh <<EOF
-#!/bin/sh
-
-echo "\$@" | tr ' ' '\n' > list
-./mysql-test-run.pl --do-test-list=list --xml-report=./results.xml >/dev/null 2>&1
-grep testcase results.xml | awk -F'"' '{
-  for (i = 1; i <= NF; i++) {
-    if (\$i ~ / suitename=/) {
-      suitename=\$(i+1)
-    } else if (\$i ~ / name=/) {
-      name=\$(i+1)
-    } else if (\$i ~ /status=/) {
-      status=\$(i+1)
+if [ "$1" = '--list-tests']; then
+  ./mysql-test-run.pl --print-testcases --suite=$testsuite | grep -E "^\[.*\]$" | tr -d "[" | tr -d "]"
+else
+  echo "\$@" | tr ' ' '\n' > list
+  ./mysql-test-run.pl --do-test-list=list --xml-report=./results.xml >/dev/null 2>&1
+  grep testcase results.xml | awk -F'"' '{
+    for (i = 1; i <= NF; i++) {
+      if (\$i ~ / suitename=/) {
+        suitename=\$(i+1)
+      } else if (\$i ~ / name=/) {
+        name=\$(i+1)
+      } else if (\$i ~ /status=/) {
+        status=\$(i+1)
+      }
     }
-  }
-  if (suitename && name && status = "pass") {
+    if (suitename && name && status = "pass") {
       print suitename "." name " 1"
-  } else if (suitename && name && status) {
+    } else if (suitename && name && status) {
       print suitename "." name " 0"
-  }
-}'
+    }
+  }'
+fi
 EOF
 
-    chmod +x mysql-server/run_tests.sh
-    chmod +x mysql-server/list_tests.sh
+    chmod +x mysql-server/entrypoint.sh
 
     cat > mysql-server/Dockerfile <<EOF
 FROM debian:bookworm
 
 RUN useradd -s /bin/bash mysql \
     && apt-get update \
-    && apt-get install -y cmake g++ openssl libssl-dev libncurses5-dev bison pkg-config perl
-
+    && apt-get install -y cmake g++ openssl libssl-dev libncurses5-dev bison pkg-config perl \
+    && mkdir -p /app/build \
+    && chown -R mysql:mysql /app
+USER mysql
 
 WORKDIR /app
-COPY . .
-
+COPY --chown=mysql:mysql . .
 WORKDIR /app/build
 
 RUN cmake -DWITH_DEBUG=1 .. \
@@ -367,10 +369,9 @@ RUN cmake -DWITH_DEBUG=1 .. \
 
 WORKDIR /app/build/mysql-test
 
-COPY list_tests.sh list_tests.sh
-COPY run_tests.sh run_tests.sh
+COPY --chown=mysql:mysql entrypoint.sh entrypoint.sh
 
-USER mysql
+ENTRYPOINT ["/app/build/mysql-test/entrypoint.sh"]
 EOF
 }
 
@@ -384,32 +385,30 @@ run_experiment() {
 
     mkdir -p "results/$testsuite"
 
-    if echo "$MSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
+    if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
 	setup_mysql_testsuite "$testsuite"
-	return
     fi
 
-    local testsuite_type=""
     if [ -d "./testsuites/$testsuite" ]; then
-	testsuite_type="java-selenium"
 	testsuite="./testsuites/$testsuite"
-    else if [ -d "./junit-testsuites/$testsuite" ]; then
-	testsuite_type="junit"
+    elif [ -d "./junit-testsuites/$testsuite" ]; then
 	testsuite="./junit-testsuites/$testsuite"
+    else
+	testsuite="./mysql-server"
     fi
 
-    if ! "$GTDD_EXEC" build -t "$testsuite_type" "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
+    if ! "$GTDD_EXEC" build "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
 	echo "Build for testsuite $testsuite failed" >> "$EXPERIMENT_LOGS"
 	return
     fi
 
     for i in $(seq 1 10); do
-	find_dependencies "$testsuite" "$testsuite_type" 'pradet'
-	find_dependencies "$testsuite" "$testsuite_type" 'pfast'
-	find_dependencies "$testsuite" "$testsuite_type" 'mem-fast'
+	find_dependencies "$testsuite" 'pradet'
+	find_dependencies "$testsuite" 'pfast'
+	find_dependencies "$testsuite" 'mem-fast'
     done
 
-    validate_results "$testsuite" "$testsuite_type"
+    validate_results "$testsuite"
 }
 
 
