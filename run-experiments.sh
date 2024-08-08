@@ -2,6 +2,7 @@
 
 
 EXPERIMENT_LOGS="./results/logs.log"
+MYSQL_TESTSUITES="collations"
 
 
 setup_junit_testsuites() {
@@ -111,6 +112,7 @@ setup() {
     setup_gtdd
     setup_pradet
     setup_junit_testsuites
+    clone_repo https://github.com/mysql/mysql-server.git
 }
 
 
@@ -312,6 +314,67 @@ find_dependencies() {
 }
 
 
+setup_mysql_testsuite() {
+    local testsuite="$1"
+
+    cat > mysql-server/list_tests.sh <<EOF
+#!/bin/sh
+
+./mysql-test-run.pl --print-testcases --suite=$testsuite | grep -E "^\[.*\]$" | tr -d "[" | tr -d "]"
+EOF
+
+    cat > mysql-server/run_tests.sh <<EOF
+#!/bin/sh
+
+echo "\$@" | tr ' ' '\n' > list
+./mysql-test-run.pl --do-test-list=list --xml-report=./results.xml >/dev/null 2>&1
+grep testcase results.xml | awk -F'"' '{
+  for (i = 1; i <= NF; i++) {
+    if (\$i ~ / suitename=/) {
+      suitename=\$(i+1)
+    } else if (\$i ~ / name=/) {
+      name=\$(i+1)
+    } else if (\$i ~ /status=/) {
+      status=\$(i+1)
+    }
+  }
+  if (suitename && name && status = "pass") {
+      print suitename "." name " 1"
+  } else if (suitename && name && status) {
+      print suitename "." name " 0"
+  }
+}'
+EOF
+
+    chmod +x mysql-server/run_tests.sh
+    chmod +x mysql-server/list_tests.sh
+
+    cat > mysql-server/Dockerfile <<EOF
+FROM debian:bookworm
+
+RUN useradd -s /bin/bash mysql \
+    && apt-get update \
+    && apt-get install -y cmake g++ openssl libssl-dev libncurses5-dev bison pkg-config perl
+
+
+WORKDIR /app
+COPY . .
+
+WORKDIR /app/build
+
+RUN cmake -DWITH_DEBUG=1 .. \
+    && cmake --build . -j 10
+
+WORKDIR /app/build/mysql-test
+
+COPY list_tests.sh list_tests.sh
+COPY run_tests.sh run_tests.sh
+
+USER mysql
+EOF
+}
+
+
 run_experiment() {
     local testsuite="$1"
     
@@ -321,11 +384,16 @@ run_experiment() {
 
     mkdir -p "results/$testsuite"
 
+    if echo "$MSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
+	setup_mysql_testsuite "$testsuite"
+	return
+    fi
+
     local testsuite_type=""
     if [ -d "./testsuites/$testsuite" ]; then
 	testsuite_type="java-selenium"
 	testsuite="./testsuites/$testsuite"
-    else
+    else if [ -d "./junit-testsuites/$testsuite" ]; then
 	testsuite_type="junit"
 	testsuite="./junit-testsuites/$testsuite"
     fi
@@ -396,7 +464,7 @@ setup
 
 TESTSUITES=""
 if [ "$#" -eq 0 ]; then
-    TESTSUITES="$(ls ./testsuites/) $(ls ./junit-testsuites/)"
+    TESTSUITES="$(ls ./testsuites/) $(ls ./junit-testsuites/) $MYSQL_TESTSUITES"
 else
     for arg in "$@"; do
 	TESTSUITES="${TESTSUITES} $(basename "$arg")"
