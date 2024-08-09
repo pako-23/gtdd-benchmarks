@@ -128,21 +128,35 @@ get_runners() {
 }
 
 
+get_testsuite_path() {
+    local testsuite="$1"
+
+    if [ -d "./testsuites/$testsuite" ]; then
+	echo "./testsuites/$testsuite"
+    elif [ -d "./junit-testsuites/$testsuite" ]; then
+	echo "./junit-testsuites/$testsuite"
+    else
+	echo "./mysql-server"
+    fi
+}
+
+
 run_testsuite() {
     local testsuite="$1"
     local graph="$2"
     local out_file="$3"
+    local testsuite_path="$(get_testsuite_path "$testsuite")"
 
     for i in $(seq 1 3); do
-	if [ -f "$testsuite/gtdd.yaml" ]; then
-	    "$GTDD_EXEC" run --config "$testsuite/gtdd.yaml" \
+	if [ -f "$testsuite_path/gtdd.yaml" ]; then
+	    "$GTDD_EXEC" run --config "$testsuite_path/gtdd.yaml" \
 			 --log-file "$out_file" \
-			 -g "$graph" "$testsuite"
+			 -g "$graph" "$testsuite_path"
 	else
 	    "$GTDD_EXEC" run -r "$(get_runners "$testsuite")" \
 			 --log-format json \
 			 --log-file "$out_file" \
-			 -g "$graph" "$testsuite"
+			 -g "$graph" "$testsuite_path"
 	fi
 
 	if [ "$?" -eq  0 ]; then
@@ -156,32 +170,32 @@ run_testsuite() {
 
 validate_results() {
     local testsuite="$1"
-    local testsuite_name="$(basename $1)"
+
     
-    if ! [ -d "./results/timing/$testsuite_name" ]; then
-	mkdir -p "./results/timing/$testsuite_name"
+    if ! [ -d "./results/timing/$testsuite" ]; then
+	mkdir -p "./results/timing/$testsuite"
     fi
 
     for i in $(seq 1 10); do
-	if [ -f "./results/timing/$testsuite_name/sequential-$i.json" ]; then
+	if [ -f "./results/timing/$testsuite/sequential-$i.json" ]; then
 	    continue
 	fi
 
 	run_testsuite "$testsuite" '' \
-		      "./results/timing/$testsuite_name/sequential-$i.json"
+		      "./results/timing/$testsuite/sequential-$i.json"
     done
 
-    for graph in "./results/$testsuite_name/graph-"*; do
-	if [ -f "./results/timing/$testsuite_name/$(basename "$graph")" ]; then
+    for graph in "./results/$testsuite/graph-"*; do
+	if [ -f "./results/timing/$testsuite/$(basename "$graph")" ]; then
 	    continue
 	fi
 
 	run_testsuite "$testsuite" \
 		      "$graph" \
-		      "./results/timing/$testsuite_name/$(basename "$graph")"
+		      "./results/timing/$testsuite/$(basename "$graph")"
     done
 
-    ./compute-times.py "./results/timing/$testsuite_name" "./results/timing/$testsuite_name/stats.csv"
+    ./compute-times.py "./results/timing/$testsuite" "./results/timing/$testsuite/stats.csv"
 }
 
 
@@ -190,23 +204,24 @@ find_dependencies_gtdd() {
     local strategy="$2"
 
     local TIME="$(date  +"%d-%m-%y-%H-%M-%S")"
-    local LOG_FILE="results/$(basename $testsuite)/log-$strategy-$TIME.json"
-    local GRAPH_FILE="results/$(basename $testsuite)/graph-$strategy-$TIME.json"
-    local SCHEDULES_FILE="results/$(basename $testsuite)/schedules-$strategy-$TIME.json"
+    local LOG_FILE="results/$testsuite/log-$strategy-$TIME.json"
+    local GRAPH_FILE="results/$testsuite/graph-$strategy-$TIME.json"
+    local SCHEDULES_FILE="results/$testsuite/schedules-$strategy-$TIME.json"
+    local testsuite_path="$(get_testsuite_path "$testsuite")"
 
     local start_time="$(date -u +%s)"
-    if [ -f "$testsuite/gtdd.yaml" ]; then
+    if [ -f "$testsuite_path/gtdd.yaml" ]; then
 	"$GTDD_EXEC" deps --log-file "$LOG_FILE" \
-		     --config  "$testsuite/gtdd.yaml" \
+		     --config  "$testsuite_path/gtdd.yaml" \
 		     -s "$strategy" -o "$GRAPH_FILE" \
-		     "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
+		     "$testsuite_path" >> "$EXPERIMENT_LOGS" 2>&1
     else
 	"$GTDD_EXEC" deps -r "$(get_runners "$testsuite")" \
 		     --log-format json \
 		     --log debug \
 		     --log-file "$LOG_FILE" \
 		     -s "$strategy" -o "$GRAPH_FILE" \
-		     "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1
+		     "$testsuite_path" >> "$EXPERIMENT_LOGS" 2>&1
     fi
     local end_time="$(date -u +%s)"
     if [ "$?" -ne  0 ]; then
@@ -216,17 +231,17 @@ find_dependencies_gtdd() {
     "$GTDD_EXEC" schedules  \
 		 -i "$GRAPH_FILE" \
 		 -o "$SCHEDULES_FILE" \
-		 "$testsuite"
+		 "$testsuite_path"
 
     ./compute-stats.py "$LOG_FILE" \
 		       "$SCHEDULES_FILE" \
-		       "results/$(basename $testsuite)/stats-$strategy.csv" \
+		       "results/$testsuite/stats-$strategy.csv" \
 		       "$(expr "$end_time" - "$start_time")" >> "$EXPERIMENT_LOGS" 2>&1
 }
 
 
 find_dependencies_pradet() {
-    local testsuite="$1"
+    local testsuite="./junit-testsuites/$testsuite"
     local strategy='pradet'
 
     local TIME="$(date  +"%d-%m-%y-%H-%M-%S")"
@@ -387,14 +402,6 @@ run_experiment() {
 
     if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
 	setup_mysql_testsuite "$testsuite"
-    fi
-
-    if [ -d "./testsuites/$testsuite" ]; then
-	testsuite="./testsuites/$testsuite"
-    elif [ -d "./junit-testsuites/$testsuite" ]; then
-	testsuite="./junit-testsuites/$testsuite"
-    else
-	testsuite="./mysql-server"
     fi
 
     if ! "$GTDD_EXEC" build "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
