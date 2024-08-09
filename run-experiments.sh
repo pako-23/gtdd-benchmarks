@@ -112,7 +112,13 @@ setup() {
     setup_gtdd
     setup_pradet
     setup_junit_testsuites
-    clone_repo https://github.com/mysql/mysql-server.git
+
+    if ! [ -d "mysql-server" ]; then
+	git clone https://github.com/mysql/mysql-server.git mysql-server
+	cd mysql-server
+	git checkout 596f0d238489a9cf9f43ce1ff905984f58d227b6
+	cd ../..
+    fi
 }
 
 
@@ -404,7 +410,7 @@ run_experiment() {
 	setup_mysql_testsuite "$testsuite"
     fi
 
-    if ! "$GTDD_EXEC" build "$testsuite" >> "$EXPERIMENT_LOGS" 2>&1; then
+    if ! "$GTDD_EXEC" build "$(get_testsuite_path "$testsuite")" >> "$EXPERIMENT_LOGS" 2>&1; then
 	echo "Build for testsuite $testsuite failed" >> "$EXPERIMENT_LOGS"
 	return
     fi
