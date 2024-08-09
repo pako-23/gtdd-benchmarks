@@ -345,7 +345,7 @@ setup_mysql_testsuite() {
     cat > mysql-server/entrypoint.sh <<EOF
 #!/bin/sh
 
-if [ "$1" = '--list-tests']; then
+if [ "$1" = '--list-tests' ]; then
   ./mysql-test-run.pl --print-testcases --suite=$testsuite | grep -E "^\[.*\]$" | tr -d "[" | tr -d "]"
 else
   echo "\$@" | tr ' ' '\n' > list
