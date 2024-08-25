@@ -2,7 +2,7 @@
 
 
 EXPERIMENT_LOGS="./results/logs.log"
-MYSQL_TESTSUITES="collations json"
+MYSQL_TESTSUITES="collations json gis information_schema"
 
 
 setup_junit_testsuites() {
