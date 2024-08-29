@@ -375,7 +375,7 @@ else
     }
   }'
 )"
-  TAIL="\$(awk '{print \$1,"0"}' testsuite | tail -n "+\$(expr "\$(echo -e "\$HEAD" | wc -l)" + 1)")
+  TAIL="\$(awk '{print \$1,"0"}' testsuite | tail -n "+\$(expr "\$(echo -e "\$HEAD" | wc -l)" + 1)")"
   echo -e "\$HEAD\n\$TAIL" | head -n "\$(cat testsuite | wc -l)"
 fi
 EOF
