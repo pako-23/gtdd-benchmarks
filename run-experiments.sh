@@ -358,7 +358,7 @@ if [ "\$1" = '--list-tests' ]; then
 else
   echo "\$@" | tr ' ' '\n' > list
   ./mysql-test-run.pl --do-test-list=list $run_options --big-test --xml-report=./results.xml >/dev/null 2>&1
-  grep testcase results.xml | awk -F'"' '{
+  HEAD="\$(grep '<testcase' results.xml | awk -F'"' '{
     for (i = 1; i <= NF; i++) {
       if (\$i ~ / suitename=/) {
         suitename=\$(i+1)
@@ -368,12 +368,15 @@ else
         status=\$(i+1)
       }
     }
-    if (suitename && name && status = "pass") {
+    if (suitename && name && status == "pass") {
       print suitename "." name " 1"
-    } else if (suitename && name && status) {
+    } else {
       print suitename "." name " 0"
     }
   }'
+)"
+  TAIL="\$(awk '{print \$1,"0"}' testsuite | tail -n "+\$(expr "\$(echo -e "\$HEAD" | wc -l)" + 1)")
+  echo -e "\$HEAD\n\$TAIL" | head -n "\$(cat testsuite | wc -l)"
 fi
 EOF
 
@@ -384,7 +387,7 @@ FROM debian:bookworm
 
 RUN useradd -s /bin/bash mysql \
     && apt-get update \
-    && apt-get install -y cmake g++ openssl libssl-dev libncurses5-dev bison pkg-config perl \
+    && apt-get install -y cmake g++ openssl libssl-dev libncurses5-dev bison pkg-config perl valgrind \
     && mkdir -p /app/build \
     && chown -R mysql:mysql /app
 USER mysql
