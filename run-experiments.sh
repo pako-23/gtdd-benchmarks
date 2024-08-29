@@ -2,7 +2,7 @@
 
 
 EXPERIMENT_LOGS="./results/logs.log"
-MYSQL_TESTSUITES="collations json gis information_schema"
+MYSQL_TESTSUITES="audit_null collations jp json gcol gis innodb_zip information_schema"
 
 
 setup_junit_testsuites() {
@@ -177,9 +177,16 @@ run_testsuite() {
 validate_results() {
     local testsuite="$1"
 
-    
     if ! [ -d "./results/timing/$testsuite" ]; then
 	mkdir -p "./results/timing/$testsuite"
+    fi
+
+    if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
+	setup_mysql_testsuite "$testsuite" '--valgrind'
+	if ! "$GTDD_EXEC" build "$(get_testsuite_path "$testsuite")" >> "$EXPERIMENT_LOGS" 2>&1; then
+	    echo "Build for testsuite $testsuite failed" >> "$EXPERIMENT_LOGS"
+	    return
+	fi
     fi
 
     for i in $(seq 1 10); do
@@ -341,15 +348,16 @@ find_dependencies() {
 
 setup_mysql_testsuite() {
     local testsuite="$1"
+    local run_options="$2"
 
     cat > mysql-server/entrypoint.sh <<EOF
 #!/bin/sh
 
 if [ "\$1" = '--list-tests' ]; then
-  ./mysql-test-run.pl --print-testcases --suite=$testsuite | grep -E "^\[.*\]$" | tr -d "[" | tr -d "]"
+   cat testsuite
 else
   echo "\$@" | tr ' ' '\n' > list
-  ./mysql-test-run.pl --do-test-list=list --xml-report=./results.xml >/dev/null 2>&1
+  ./mysql-test-run.pl --do-test-list=list $run_options --big-test --xml-report=./results.xml >/dev/null 2>&1
   grep testcase results.xml | awk -F'"' '{
     for (i = 1; i <= NF; i++) {
       if (\$i ~ / suitename=/) {
@@ -390,6 +398,8 @@ RUN cmake -DWITH_DEBUG=1 .. \
 
 WORKDIR /app/build/mysql-test
 
+RUN ./mysql-test-run.pl --suite=$testsuite --big-test | grep pass | awk '{print \$3}' | grep -E '^[0-9a-zA-Z.]+' > testsuite
+
 COPY --chown=mysql:mysql entrypoint.sh entrypoint.sh
 
 ENTRYPOINT ["/app/build/mysql-test/entrypoint.sh"]
@@ -407,7 +417,7 @@ run_experiment() {
     mkdir -p "results/$testsuite"
 
     if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
-	setup_mysql_testsuite "$testsuite"
+	setup_mysql_testsuite "$testsuite" ''
     fi
 
     if ! "$GTDD_EXEC" build "$(get_testsuite_path "$testsuite")" >> "$EXPERIMENT_LOGS" 2>&1; then
