@@ -358,25 +358,14 @@ if [ "\$1" = '--list-tests' ]; then
 else
   echo "\$@" | tr ' ' '\n' > list
   ./mysql-test-run.pl --do-test-list=list $run_options --big-test --xml-report=./results.xml >/dev/null 2>&1
-  HEAD="\$(grep '<testcase' results.xml | awk -F'"' '{
-    for (i = 1; i <= NF; i++) {
-      if (\$i ~ / suitename=/) {
-        suitename=\$(i+1)
-      } else if (\$i ~ / name=/) {
-        name=\$(i+1)
-      } else if (\$i ~ /status=/) {
-        status=\$(i+1)
-      }
-    }
-    if (suitename && name && status == "pass") {
-      print suitename "." name " 1"
-    } else {
-      print suitename "." name " 0"
-    }
-  }'
-)"
-  TAIL="\$(awk '{print \$1,"0"}' testsuite | tail -n "+\$(expr "\$(echo -e "\$HEAD" | wc -l)" + 1)")"
-  echo -e "\$HEAD\n\$TAIL" | head -n "\$(cat testsuite | wc -l)"
+  for test_name in \$(cat list); do
+    testcase="\$(grep "name=\\"\$(echo "\$test_name" | awk -F'.' '{print \$2}')\\"" results.xml)"
+    result='0'
+    if echo "\$testcase" | grep -q 'status="pass"'; then
+	result='1'
+    fi
+    echo "\$test_name $result"
+  done
 fi
 EOF
 
