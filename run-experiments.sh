@@ -364,7 +364,7 @@ else
     if echo "\$testcase" | grep -q 'status="pass"'; then
 	result='1'
     fi
-    echo "\$test_name $result"
+    echo "\$test_name \$result"
   done
 fi
 EOF
