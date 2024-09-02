@@ -149,7 +149,10 @@ get_testsuite_path() {
 
 run_testsuite() {
     local testsuite="$1"
-    local graph="$2"
+    local graph=""
+    if [ -n "$2" ]; then
+	graph="-g $2"
+    fi
     local out_file="$3"
     local testsuite_path="$(get_testsuite_path "$testsuite")"
 
@@ -157,12 +160,12 @@ run_testsuite() {
 	if [ -f "$testsuite_path/gtdd.yaml" ]; then
 	    "$GTDD_EXEC" run --config "$testsuite_path/gtdd.yaml" \
 			 --log-file "$out_file" \
-			 -g "$graph" "$testsuite_path"
+			 "$graph" "$testsuite_path"
 	else
 	    "$GTDD_EXEC" run -r "$(get_runners "$testsuite")" \
 			 --log-format json \
 			 --log-file "$out_file" \
-			 -g "$graph" "$testsuite_path"
+			 "$graph" "$testsuite_path"
 	fi
 
 	if [ "$?" -eq  0 ]; then
