@@ -56,7 +56,7 @@ def main(base, outfile):
         "sequential_max_execution",
         "pradet_max_execution",
         "pfast_max_execution",
-        "mem_fast_execution",
+        "mem_fast_max_execution",
         "sequential_tot_work",
         "pradet_tot_work",
         "pfast_tot_work",
