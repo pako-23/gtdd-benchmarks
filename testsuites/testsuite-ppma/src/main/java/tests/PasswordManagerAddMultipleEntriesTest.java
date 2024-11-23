@@ -44,6 +44,7 @@ public class PasswordManagerAddMultipleEntriesTest {
 		driver.navigate().refresh();
 		basePageObject.mouseOver(By.linkText("Entries"));
 		driver.findElement(By.linkText("Create")).click();
+		basePageObject.waitForElementBeingPresentOnPage(By.id("Entry_name"));
 		basePageObject.sendKeys(By.id("Entry_name"), "Google");
 		basePageObject.sendKeys(By.id("Entry_username"), "myaccount2@google.it");
 		basePageObject.sendKeys(By.id("Entry_password"), "mypassword2");
@@ -54,6 +55,7 @@ public class PasswordManagerAddMultipleEntriesTest {
 		driver.navigate().refresh();
 		basePageObject.mouseOver(By.linkText("Entries"));
 		driver.findElement(By.linkText("Create")).click();
+		basePageObject.waitForElementBeingPresentOnPage(By.id("Entry_name"));
 		basePageObject.sendKeys(By.id("Entry_name"), "Google");
 		basePageObject.sendKeys(By.id("Entry_username"), "myaccount3@google.it");
 		basePageObject.sendKeys(By.id("Entry_password"), "mypassword3");
@@ -62,7 +64,9 @@ public class PasswordManagerAddMultipleEntriesTest {
 		basePageObject.sendKeys(By.id("Entry_comment"), "My third personal email");
 		basePageObject.click(By.name("yt0"));
 		driver.navigate().refresh();
-		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[1]")).getText().contains("Google"));
+		basePageObject.waitForElementBeingPresentOnPage(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[1]"));
+		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[1]")
+).getText().contains("Google"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[2]")).getText().contains("myaccount1@google.it"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[3]")).getText().contains("Email, Google"));
 		assertTrue(driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[2]/td[1]")).getText().contains("Google"));

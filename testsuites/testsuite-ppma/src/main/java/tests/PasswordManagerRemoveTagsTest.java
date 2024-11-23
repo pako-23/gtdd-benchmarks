@@ -31,12 +31,13 @@ public class PasswordManagerRemoveTagsTest {
 		driver.findElement(By.id("LoginForm_password")).sendKeys("admin");
 		driver.findElement(By.xpath("//*[@id='login-form']/div/div[2]/a")).click();
 		driver.findElement(By.linkText("Tags")).click();
-		driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[3]/a[3]")).click();
-		driver.switchTo().alert().accept();
-		driver.navigate().refresh();
-		driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[3]/a[3]")).click();
-		driver.switchTo().alert().accept();
-		driver.navigate().refresh();
+
+		for (int i = 0; i < 2; ++i) {
+		    basePageObject.waitForElementBeingClickable(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[3]/a[3]"));
+		    driver.findElement(By.xpath("html/body/div[1]/div/div/div[3]/table/tbody/tr[1]/td[3]/a[3]")).click();
+		    driver.switchTo().alert().accept();
+		    driver.navigate().refresh();
+		}
 		basePageObject.waitForElementBeingPresentOnPage(By.className("empty"));
 		assertTrue(driver.findElement(By.className("empty")).getText().contains("No results found."));
 		driver.findElement(By.linkText("Profile")).click();

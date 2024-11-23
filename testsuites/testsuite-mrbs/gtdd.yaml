@@ -2,7 +2,7 @@
 env:
   - driver_url=http://selenium:4444
   - app_url=http://app
-runners: 12
+runners: 8
 log-format: json
 log: debug
 driver: ./selenium-driver.yaml

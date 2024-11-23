@@ -21,12 +21,13 @@ public class RemoveMultipleRoomsTest {
 	@Before
 	public void setUp() throws Exception {
 		driver = DriverProvider.getInstance().getDriver();
-		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		driver.get(Properties.app_url);
 	}
 
 	@Test
 	public void testRemoveMultipleRooms() throws Exception {
+
 		driver.findElement(By.xpath(".//*[@id='logon_box']/form/div/input[3]")).click();
 		driver.findElement(By.name("NewUserName")).clear();
 		driver.findElement(By.name("NewUserName")).sendKeys("administrator");
@@ -35,18 +36,14 @@ public class RemoveMultipleRoomsTest {
 		driver.findElement(By.cssSelector("input.submit")).click();
 		driver.findElement(By.linkText("Rooms")).click();
 		new Select(driver.findElement(By.xpath(".//*[@id='area_select']"))).selectByIndex(2);
-		driver.findElement(
-				By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img"))
-				.click();
-		driver.findElement(By.id("del_yes")).click();
-		driver.findElement(
-				By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img"))
-				.click();
-		driver.findElement(By.id("del_yes")).click();
-		driver.findElement(
-				By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img"))
-				.click();
-		driver.findElement(By.id("del_yes")).click();
+
+		for (int i = 0; i < 3; ++i) {
+		    driver.navigate().refresh();
+		    driver.findElement(By.xpath(".//*[@id='rooms_table_wrapper']/div[6]/div[1]/div[2]/table/tbody/tr[1]/td/div/a/img")).click();
+		    driver.findElement(By.id("del_yes")).click();
+		}
+
+		driver.navigate().refresh();
 		assertFalse(driver.findElement(By.cssSelector("BODY")).getText()
 				.matches("^[\\s\\S]*MyRoom1\\(Description of MyRoom1, 5\\)[\\s\\S]*$"));
 		assertFalse(driver.findElement(By.cssSelector("BODY")).getText()
