@@ -5,27 +5,118 @@ EXPERIMENT_LOGS="./results/logs.log"
 MYSQL_TESTSUITES="audit_null collations jp json gcol gis innodb_zip information_schema"
 
 
+setup_junit_testsuite() {
+    local testsuite="$1"
+
+    cd junit-testsuites/"$testsuite"
+
+    if ! [ -f entrypoint.sh ]; then
+	cat > entrypoint.sh <<EOF
+#!/bin/sh
+
+if [ "\$1" = '--list-tests' ]; then
+   cat testsuite
+else
+  CLASSES_PATH="\$(find . -name classes -type d | paste -sd ':')"
+  TEST_CLASSES_PATH="\$(find . -name test-classes -type d | paste -sd ':')"
+  java -cp "/app/junit-4.12.jar:\$(cat merged-cp.txt):\$TEST_CLASSES_PATH:\$CLASSES_PATH:" CustomRunner "\$@"  >/dev/null 2>&1
+  cat summary.txt
+fi
+EOF
+	chmod +x entrypoint.sh
+    fi
+    if ! [ -f testsuite ]; then
+	docker run -v $PWD:/app maven:3.6.1-jdk-8 bash -c 'cd /app && mvn clean test' >/dev/null 2>&1
+	find . -name TEST*.xml -exec grep -E '<testcase |<skipped|<failure ' {} \; |
+	     sed '$!N;/<skipped\/>\|<failure /!P;D' | grep -v '<failure' | awk -F'"' '{
+	  for (i = 1; i <= NF; i++) {
+            if ($i ~ /classname=/) {
+	      classname=$(i+1)
+    	    } else if ($i ~ /name=/) {
+      	      name=$(i+1)
+    	    }
+  	  }
+  	  if (classname && name) { print classname "#" name }
+	}' | uniq > testsuite
+    fi
+
+    if ! [ -f CustomRunner.java ]; then
+	cat > CustomRunner.java <<EOF
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
+import org.junit.runner.Result;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class CustomRunner {
+    public static void main(final String[] args) throws ClassNotFoundException {
+        JUnitCore core = new JUnitCore();
+        final boolean[] results = new boolean[args.length];
+
+	for (int i = 0; i < args.length; ++i) {
+            String[] parts = args[i].split("#");
+            Request request = Request.method(Class.forName(parts[0]), parts[1]);
+
+	    Result result = core.run(request);
+	    results[i] = result.wasSuccessful();
+        }
+
+	try {
+	    PrintWriter out = new PrintWriter(new FileWriter("summary.txt"));
+
+	    for (int i = 0; i < results.length; ++i)
+		out.println(String.format("%s %d", args[i], results[i] ? 1 : 0));
+
+	    out.close();
+        } catch (IOException e) {
+            System.exit(1);
+        }
+        System.exit(0);
+    }
+}
+EOF
+    fi
+
+    if ! [ -f Dockerfile ]; then
+	cat > Dockerfile <<EOF
+FROM maven:3.6.1-jdk-8
+
+COPY . /app
+WORKDIR /app
+
+RUN curl -O https://repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar
+RUN mvn compile test-compile
+RUN mvn dependency:build-classpath -DincludeScope=test -Dmdep.outputFile=cp.txt
+RUN paste -d: \$(find .  -name cp.txt ! -size 0) | tr -d '\n' > merged-cp.txt
+RUN javac -cp "/app/junit-4.12.jar:" CustomRunner.java
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+EOF
+    fi
+
+    cd ../..
+}
+
+
 setup_junit_testsuites() {
     REPOS="
-photoplatform-sdf,3a7d9e76d9,https://github.com/VincSch/photoplatform-sdf.git
-DiskLruCache,3aa62867b2,https://github.com/JakeWharton/DiskLruCache.git
-indextank-engine,f2354fe9db,https://github.com/linkedin/indextank-engine.git
 Bateman,08db4a68fb,https://github.com/fearofcode/bateman.git
-dspot,fe822567e9,https://github.com/STAMP-project/dspot.git
-webbit,f628a7a3ff,https://github.com/webbit/webbit.git
-stream-lib,5868141735,https://github.com/addthis/stream-lib.git
-http-request,2d62a3e9da,https://github.com/kevinsawicki/http-request.git
-okio,20e259c08a,https://github.com/square/okio.git
-togglz,7a1af66c0b,https://github.com/togglz/togglz.git
 Bukkit,574f7a8c6c,https://github.com/Bukkit/Bukkit.git
-jackson-core,d04bea92fd,https://github.com/FasterXML/jackson-core.git
-jsoup,f28c024ba1,https://github.com/jhy/jsoup.git
+DiskLruCache,3aa62867b2,https://github.com/JakeWharton/DiskLruCache.git
 dynjs,4bc6715eff,https://github.com/dynjs/dynjs.git
-joda-time,b609d7d66d,https://github.com/JodaOrg/joda-time
+http-request,2d62a3e9da,https://github.com/kevinsawicki/http-request.git
+indextank-engine,f2354fe9db,https://github.com/linkedin/indextank-engine.git
+jackson-core,29e8dc34bd,https://github.com/FasterXML/jackson-core.git
+jsoup,f28c024ba1,https://github.com/jhy/jsoup.git
+okio,895452f52b,https://github.com/square/okio.git
+photoplatform-sdf,3a7d9e76d9,https://github.com/VincSch/photoplatform-sdf.git
+stream-lib,5868141735,https://github.com/addthis/stream-lib.git
+webbit,f628a7a3ff,https://github.com/webbit/webbit.git
 "
-    if ! [ -d junit-testsuites ]; then
-	mkdir junit-testsuites
-    fi
+
+
+    mkdir -p junit-testsuites/
 
     for line in $REPOS; do
 	directory="$(echo $line | cut -d',' -f1)"
@@ -37,26 +128,19 @@ joda-time,b609d7d66d,https://github.com/JodaOrg/joda-time
 	    git checkout "$commitid"
 	    cd ../..
 	fi
+	setup_junit_testsuite "$directory"
     done
 
-    if ! [ -d junit-testsuites/crystalvc ]; then
-	cp -r pradet-replication/experimental-study/crystalvc/ junit-testsuites/
+    if ! test -d junit-testsuites/xmlsecurity; then
+	cd junit-testsuites/
+	clone_repo https://github.com/gmu-swe/pradet-replication.git
+
+	cp -r pradet-replication/experimental-study/xmlsecurity/ xmlsecurity
+	rm -rf pradet-replication/
+	cd ..
     fi
 
-    if ! [ -d junit-testsuites/xmlsecurity ]; then
-	cp -r pradet-replication/experimental-study/xmlsecurity/ junit-testsuites/
-    fi
-
-    if ! [ -d junit-testsuites/dynoptic ]; then
-	cat pradet-replication/experimental-study/dynoptic.partaa > dynoptic.tar.gz
-	cat pradet-replication/experimental-study/dynoptic.partab >> dynoptic.tar.gz
-	cat pradet-replication/experimental-study/dynoptic.partac >> dynoptic.tar.gz
-
-	tar -xzf dynoptic.tar.gz
-	rm -f dynoptic.tar.gz
-	mv dynoptic/dynoptic junit-testsuites/
-	rm -rf dynoptic
-    fi
+    setup_junit_testsuite xmlsecurity
 }
 
 
@@ -87,19 +171,6 @@ setup_gtdd() {
 }
 
 
-setup_pradet() {
-    clone_repo https://github.com/gmu-swe/pradet-replication.git
-
-    cd pradet-replication/
-
-    clone_repo https://github.com/skappler/datadep-detector
-
-    cd datadep-detector
-    mvn clean install -DskipTests >/dev/null 2>&1
-    cd ../..
-}
-
-
 setup() {
     if ! [ -d results ]; then
 	mkdir -p results
@@ -110,7 +181,6 @@ setup() {
     fi
 
     setup_gtdd
-    setup_pradet
     setup_junit_testsuites
 
     if ! [ -d "mysql-server" ]; then
@@ -158,19 +228,20 @@ run_testsuite() {
 
     for i in $(seq 1 3); do
 	if [ -f "$testsuite_path/gtdd.yaml" ]; then
-	    "$GTDD_EXEC" run --config "$testsuite_path/gtdd.yaml" \
-			 --log-file "$out_file" \
-			 "$graph" "$testsuite_path"
+	    "$GTDD_EXEC" run --config $testsuite_path/gtdd.yaml \
+			 --log-file $out_file \
+			 $graph $testsuite_path
 	else
 	    "$GTDD_EXEC" run -r "$(get_runners "$testsuite")" \
 			 --log-format json \
-			 --log-file "$out_file" \
-			 "$graph" "$testsuite_path"
+			 --log-file $out_file \
+			 $graph $testsuite_path
 	fi
 
 	if [ "$?" -eq  0 ]; then
 	    return
 	fi
+	rm $out_file
     done
 
     echo "Schedule $graph does not work" >> "$EXPERIMENT_LOGS"
@@ -215,7 +286,7 @@ validate_results() {
 }
 
 
-find_dependencies_gtdd() {
+find_dependencies() {
     local testsuite="$1"
     local strategy="$2"
 
@@ -253,99 +324,6 @@ find_dependencies_gtdd() {
 		       "$SCHEDULES_FILE" \
 		       "results/$testsuite/stats-$strategy.csv" \
 		       "$(expr "$end_time" - "$start_time")" >> "$EXPERIMENT_LOGS" 2>&1
-}
-
-
-find_dependencies_pradet() {
-    local testsuite="./junit-testsuites/$testsuite"
-    local strategy='pradet'
-
-    local TIME="$(date  +"%d-%m-%y-%H-%M-%S")"
-    local GRAPH_FILE="../../results/$(basename $testsuite)/graph-$strategy-$TIME.json"
-    local SCHEDULES_FILE="../../results/$(basename $testsuite)/schedules-$strategy-$TIME.json"
-
-
-    cd "$testsuite"
-
-    if ! [ -f test-execution-order ]; then
-	../../pradet-replication/scripts/extract_test_names_from_maven_output.sh >/dev/null
-	mv maven_test_execution_order test-execution-order
-    fi
-
-    if ! [ -f reference-output.csv ]; then
-	BIN=../../pradet-replication/bin \
-	    ../../pradet-replication/scripts/generate_test_order.sh maven_test_execution_order >/dev/null
-    fi
-
-    if ! [ -f enumerations ]; then
-	BIN=../../pradet-replication/bin \
-	    ../../pradet-replication/scripts/bootstrap_enums.sh >/dev/null
-    fi
-
-    if ! [ -f package-filter ]; then
-	BIN=../../pradet-replication/bin \
-	    ../../pradet-replication/scripts/create_package_filter.sh
-    fi
-
-    local start_time="$(date -u +%s)"
-    BIN=../../pradet-replication/bin \
-	DATADEP_DETECTOR_HOME=../../pradet-replication/datadep-detector \
-	../../pradet-replication/scripts/collect.sh >/dev/null
-    mv reference-output.csv-* reference-output.csv
-    mv run-order-* run-order
-    BIN=../../pradet-replication/bin \
-	DATADEP_DETECTOR_HOME=../../pradet-replication/datadep-detector \
-	../../pradet-replication/scripts/refine.sh >/dev/null
-    local end_time="$(date -u +%s)"
-
-    ../../compute-pradet-graph.py run-order refined-deps.csv "$GRAPH_FILE"
-
-    "../../$GTDD_EXEC" schedules -t junit  \
-		 -i "$GRAPH_FILE" \
-		 -o "$SCHEDULES_FILE" \
-		 "$testsuite"
-
-    local stats_file="../../results/$(basename $testsuite)/stats-$strategy.csv"
-    local tests="$(cat run-order | wc -l)"
-    local testsuite_runs="$(grep -E 'Finished after [0-9]+ iterations' pradet/refinement.log | grep -Eo '[0-9]+')"
-    local test_runs="$(grep -Eo 'Executed [0-9]+ tests in total' pradet/refinement.log | grep -Eo '[0-9]+')"
-    local longest_cost="$(python3 <<EOF
-import json
-
-with open("$SCHEDULES_FILE", "r") as fp:
-     print(max(map(len, json.load(fp))))
-EOF
-)"
-    local tot_cost="$(python3 <<EOF
-import json
-
-with open("$SCHEDULES_FILE", "r") as fp:
-     print(sum(map(len, json.load(fp))))
-EOF
-)"
-
-    if ! [ -f "$stats_file" ]; then
-	echo 'n,test_suite_runs,tests_runned,time,longest_cost,tot_cost' > "$stats_file"
-    fi
-
-    echo "$tests,$testsuite_runs,$test_runs,$(expr "$end_time" - "$start_time"),$longest_cost,$tot_cost" >> "$stats_file"
-
-    rm reference-output.csv
-    rm run-order
-    rm -rf pradet
-    cd ../..
-}
-
-
-find_dependencies() {
-    local testsuite="$1"
-    local strategy="$2"
-
-    if [ "$strategy" = 'pradet' ] && [ -d "./junit-testsuites/$(basename "$testsuite")" ]; then
-	find_dependencies_pradet "$testsuite"
-    else
-	find_dependencies_gtdd "$testsuite" "$strategy"
-    fi
 }
 
 
