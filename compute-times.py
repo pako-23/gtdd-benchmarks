@@ -23,12 +23,12 @@ def time_to_seconds(s):
     return seconds + float(rest[:-1])
 
 
-def get_running_time(file):
+def get_running_time(fname):
     tot_work = 0
     max_execution = 0
     cpu_number = 0
 
-    with open(file, "r") as fp:
+    with open(fname, "r") as fp:
         for line in fp:
             data = json.loads(line)
             if data["msg"].startswith("expected running time "):
@@ -40,12 +40,12 @@ def get_running_time(file):
     return max_execution, tot_work, cpu_number
 
 
-def get_algo(file):
-    if "sequential" in file:
+def get_algo(fname):
+    if "sequential" in fname:
         return "sequential"
-    elif "pfast" in file:
+    elif "pfast" in fname:
         return "pfast"
-    elif "pradet" in file:
+    elif "pradet" in fname:
         return "pradet"
     else:
         return "mem_fast"
@@ -68,9 +68,9 @@ def main(base, outfile):
     ]
     data = dict(((key, []) for key in keys))
 
-    for file in glob.glob(os.path.join(base, "*.json")):
-        algo = get_algo(file)
-        max_execution, tot_work, cpu_number = get_running_time(file)
+    for fname in glob.glob(os.path.join(base, "*.json")):
+        algo = get_algo(fname)
+        max_execution, tot_work, cpu_number = get_running_time(fname)
         data[f"{algo}_max_execution"].append(max_execution)
         data[f"{algo}_tot_work"].append(tot_work)
         data[f"{algo}_cpu_number"].append(cpu_number)
@@ -80,7 +80,7 @@ def main(base, outfile):
         out.writerow(keys)
 
         for i in range(len(data["sequential_max_execution"])):
-            out.writerow([data[key][i] for key in keys])
+            out.writerow([data[key][i] if i < len(data[key]) else "-" for key in keys])
 
 
 if __name__ == "__main__":

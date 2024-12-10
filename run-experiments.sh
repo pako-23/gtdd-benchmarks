@@ -257,6 +257,7 @@ validate_results() {
 
     if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
 	setup_mysql_testsuite "$testsuite" '--valgrind'
+	docker system prune -f -a
 	if ! "$GTDD_EXEC" build "$(get_testsuite_path "$testsuite")" >> "$EXPERIMENT_LOGS" 2>&1; then
 	    echo "Build for testsuite $testsuite failed" >> "$EXPERIMENT_LOGS"
 	    return
@@ -272,7 +273,7 @@ validate_results() {
 		      "./results/timing/$testsuite/sequential-$i.json"
     done
 
-    for graph in "./results/$testsuite/graph-"*; do
+    for graph in $(ls "./results/$testsuite/" | grep graph-); do
 	if [ -f "./results/timing/$testsuite/$(basename "$graph")" ]; then
 	    continue
 	fi
@@ -298,20 +299,27 @@ find_dependencies() {
 
     local start_time="$(date -u +%s)"
     if [ -f "$testsuite_path/gtdd.yaml" ]; then
-	"$GTDD_EXEC" deps --log-file "$LOG_FILE" \
+	timeout 24h "$GTDD_EXEC" deps --log-file "$LOG_FILE" \
 		     --config  "$testsuite_path/gtdd.yaml" \
 		     -s "$strategy" -o "$GRAPH_FILE" \
 		     "$testsuite_path" >> "$EXPERIMENT_LOGS" 2>&1
     else
-	"$GTDD_EXEC" deps -r "$(get_runners "$testsuite")" \
+	timeout 24h "$GTDD_EXEC" deps -r "$(get_runners "$testsuite")" \
 		     --log-format json \
 		     --log debug \
 		     --log-file "$LOG_FILE" \
 		     -s "$strategy" -o "$GRAPH_FILE" \
 		     "$testsuite_path" >> "$EXPERIMENT_LOGS" 2>&1
     fi
+    local exit_status="$?"
     local end_time="$(date -u +%s)"
-    if [ "$?" -ne  0 ]; then
+    if [ "$exit_status" -ne  0 ]; then
+	docker rm -f $(docker ps -aq)
+	docker network prune -f
+	./compute-stats.py "$LOG_FILE" \
+		       "$SCHEDULES_FILE" \
+		       "results/$testsuite/stats-$strategy.csv" \
+		       "$(expr "$end_time" - "$start_time")" >> "$EXPERIMENT_LOGS" 2>&1
 	return
     fi
 

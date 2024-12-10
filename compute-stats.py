@@ -44,9 +44,6 @@ def compute_graph_stats(filename):
 
 
 def main(logs, graph, outfile, time):
-    test_suite_runs, tests_runned = compute_log_stats(logs)
-    n, longest_cost, tot_cost = compute_graph_stats(graph)
-
     add_header = not os.path.isfile(outfile)
 
     with open(outfile, "a") as fp:
@@ -63,16 +60,22 @@ def main(logs, graph, outfile, time):
                 ]
             )
 
-        out.writerow(
-            [
-                n,
-                test_suite_runs,
-                tests_runned,
-                time,
-                longest_cost,
-                tot_cost,
-            ]
-        )
+        if not os.path.isfile(graph):
+            out.writerow(["-"] * 6)
+        else:
+            test_suite_runs, tests_runned = compute_log_stats(logs)
+            n, longest_cost, tot_cost = compute_graph_stats(graph)
+
+            out.writerow(
+                [
+                    n,
+                    test_suite_runs,
+                    tests_runned,
+                    time,
+                    longest_cost,
+                    tot_cost,
+                ]
+            )
 
 
 if __name__ == "__main__":
