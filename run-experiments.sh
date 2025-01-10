@@ -279,7 +279,7 @@ validate_results() {
 	fi
 
 	run_testsuite "$testsuite" \
-		      "$graph" \
+		      "./results/$testsuite/$graph" \
 		      "./results/timing/$testsuite/$(basename "$graph")"
     done
 
