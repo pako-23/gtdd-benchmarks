@@ -193,14 +193,7 @@ setup() {
 
 
 get_runners() {
-    local testsuite="$(basename "$1")"
-
-    if echo "$MYSQL_TESTSUITES" | grep -q "\b$testsuite\b"; then
-	expr "$(nproc --all)" / 2
-	return
-    fi
-
-    nproc --all
+    expr "$(nproc --all)" / 2
 }
 
 
@@ -232,8 +225,7 @@ run_testsuite() {
 			 --log-file $out_file \
 			 $graph $testsuite_path
 	else
-	    "$GTDD_EXEC" run -r "$(get_runners "$testsuite")" \
-			 --log-format json \
+	    "$GTDD_EXEC" run --log-format json \
 			 --log-file $out_file \
 			 $graph $testsuite_path
 	fi
