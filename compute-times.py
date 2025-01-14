@@ -15,10 +15,12 @@ def splitting(s, key):
 
 
 def time_to_seconds(s):
+    if 'ms' in s:
+        return float(s[:-2])/1000
     seconds = 0
     hours, rest = splitting(s, "h")
     seconds += 3600 * int(hours)
-    minutes, rest = splitting(s, "m")
+    minutes, rest = splitting(rest, "m")
     seconds += 60 * int(minutes)
     return seconds + float(rest[:-1])
 
